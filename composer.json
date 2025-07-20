@@ -1,0 +1,29 @@
+{
+    "name": "hiyoko/transrate-line-bot",
+    "description": "Japanese to Traditional Chinese bidirectional translation LINE Bot using DeepL API",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Hiyoko",
+            "email": "your-email@example.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-json": "*",
+        "ext-curl": "*",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "TranslateBot\\": "src/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

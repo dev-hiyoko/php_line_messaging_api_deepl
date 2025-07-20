@@ -1,0 +1,36 @@
+# 設定ファイル（本番用）
+config.php
+
+
+# 一時ファイル
+tmp/
+temp/
+
+# キャッシュ
+cache/
+
+# IDE設定
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS固有ファイル
+.DS_Store
+Thumbs.db
+
+# Composer
+vendor/
+composer.lock
+
+# 環境変数ファイル
+.env
+.env.local
+.env.production
+
+# バックアップファイル
+*.bak
+*.backup
+
+# claude
+.claude/
