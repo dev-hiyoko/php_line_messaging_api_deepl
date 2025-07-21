@@ -65,15 +65,11 @@ function isMentioned($text, $event) {
         return true;
     }
     
-    // グループ・ルームチャットの場合はメンション記号をチェック
-    if (isset($event['message']['mention']) && 
-        isset($event['message']['mention']['mentionees'])) {
-        
-        // Botがメンションされているかチェック
+    // グループ・ルームチャットの場合はメンション情報をチェック
+    if (isset($event['message']['mention']['mentionees'])) {
         foreach ($event['message']['mention']['mentionees'] as $mentionee) {
-            if (isset($mentionee['type']) && $mentionee['type'] === 'user') {
-                // Botの情報と照合（実際のBot情報が必要）
-                return true;
+            if (isset($mentionee['isSelf']) && $mentionee['isSelf'] === true) {
+                return true; // Botがメンションされている
             }
         }
     }
@@ -95,8 +91,8 @@ function removeMention($text) {
     // @記号でのメンションを除去
     $text = preg_replace('/^@\S+\s*/', '', $text);
     
-    // LINE特殊文字（メンション）を除去
-    $text = preg_replace('/\uE000[\uE000-\uE0FF]*\uE001/', '', $text);
+    // LINE特殊文字（メンション）を除去 - 修正版
+    $text = preg_replace('/[\x{E000}-\x{E0FF}]+/u', '', $text);
     
     return trim($text);
 }
