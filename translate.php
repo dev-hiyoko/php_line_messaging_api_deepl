@@ -143,6 +143,24 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         ];
     }
     
+    // Claudeコマンドが利用可能かチェック
+    $checkCommand = "which claude 2>&1";
+    $claudePath = shell_exec($checkCommand);
+    
+    if (DEBUG_MODE) {
+        error_log("Claude path check: " . ($claudePath ?? 'NULL'));
+    }
+    
+    if ($claudePath === null || trim($claudePath) === '' || strpos($claudePath, 'not found') !== false) {
+        if (DEBUG_MODE) {
+            error_log("Claude command not found on system");
+        }
+        return [
+            'success' => false,
+            'error' => ERROR_TRANSLATION_FAILED
+        ];
+    }
+    
     // 翻訳プロンプトを作成
     $prompt = "Translate the following text ";
     
@@ -167,7 +185,14 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $output = shell_exec($command);
     
+    if (DEBUG_MODE) {
+        error_log("Claude Output: " . ($output ?? 'NULL'));
+    }
+    
     if ($output === null || trim($output) === '') {
+        if (DEBUG_MODE) {
+            error_log("Claude command returned null or empty output");
+        }
         return [
             'success' => false,
             'error' => ERROR_TRANSLATION_FAILED
@@ -178,7 +203,13 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     // エラーメッセージのチェック
     if (strpos($translatedText, 'Error:') !== false || 
-        strpos($translatedText, 'command not found') !== false) {
+        strpos($translatedText, 'command not found') !== false ||
+        strpos($translatedText, 'No such file') !== false ||
+        strpos($translatedText, 'Permission denied') !== false) {
+        
+        if (DEBUG_MODE) {
+            error_log("Claude command error detected: " . $translatedText);
+        }
         return [
             'success' => false,
             'error' => ERROR_TRANSLATION_FAILED
