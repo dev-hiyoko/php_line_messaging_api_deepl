@@ -218,10 +218,10 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         error_log("Claude Command: " . $command);
     }
     
-    // 環境変数PATHを設定して実行（nodebrewのパスを含める）
+    // 環境変数PATHとNODE_OPTIONSを設定して実行
     $homeDir = '/home/' . get_current_user();
     $envPath = $homeDir . '/.nodebrew/current/bin:/usr/local/bin:/usr/bin:/bin';
-    $fullCommand = "PATH=" . $envPath . " " . $command;
+    $fullCommand = "PATH=" . $envPath . " NODE_OPTIONS='--max-old-space-size=256' " . $command;
     
     if (DEBUG_MODE) {
         error_log("Full Command with PATH: " . $fullCommand);
