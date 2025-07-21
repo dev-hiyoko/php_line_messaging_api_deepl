@@ -186,7 +186,7 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         '/home/' . get_current_user() . '/.local/bin/claude',
         'claude' // 最後にPATHから検索
     ];
-    
+    // Translate the following text from Chinese to Japanese: 它在中文中有效嗎？
     $command = null;
     foreach ($claudePaths as $path) {
         // チルダを絶対パスに変換
@@ -195,7 +195,8 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            $command = $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            // メモリ制限を設定してClaudeを実行（512MBに設定）
+            $command = "node --max-old-space-size=512 " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
             }
