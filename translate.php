@@ -195,8 +195,8 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // メモリ制限を設定してClaudeを実行（512MBに設定）
-            $command = "node --max-old-space-size=512 " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            // 軽量実行（メモリ制限を緩和）
+            $command = "timeout 30s " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
             }
