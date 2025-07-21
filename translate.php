@@ -134,8 +134,8 @@ function processTranslation($inputText) {
         // 日本語 → 繁体中文
         $result = translateText($inputText, 'JA', 'ZH-HANT');
     } else {
-        // 繁体中文 → 日本語
-        $result = translateText($inputText, 'ZH-HANT', 'JA');
+        // 中国語 → 日本語（source_langは自動検出）
+        $result = translateText($inputText, 'auto', 'JA');
     }
     
     if (DEBUG_MODE) {
