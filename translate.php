@@ -176,14 +176,45 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $prompt .= ". Return only the translated text without any explanation.";
     
-    // Claudeコマンドを実行
-    $command = "claude -p " . escapeshellarg($prompt) . " 2>&1";
+    // Claudeコマンドを実行（複数のパスを試行）
+    $claudePaths = [
+        '/usr/local/bin/claude',
+        '/usr/bin/claude',
+        '/bin/claude',
+        'claude' // 最後にPATHから検索
+    ];
+    
+    $command = null;
+    foreach ($claudePaths as $path) {
+        if ($path === 'claude' || file_exists($path)) {
+            $command = $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            break;
+        }
+    }
+    
+    if ($command === null) {
+        if (DEBUG_MODE) {
+            error_log("No valid Claude command path found");
+        }
+        return [
+            'success' => false,
+            'error' => ERROR_TRANSLATION_FAILED
+        ];
+    }
     
     if (DEBUG_MODE) {
         error_log("Claude Command: " . $command);
     }
     
-    $output = shell_exec($command);
+    // 環境変数PATHを設定して実行
+    $envPath = '/usr/local/bin:/usr/bin:/bin';
+    $fullCommand = "PATH=" . $envPath . " " . $command;
+    
+    if (DEBUG_MODE) {
+        error_log("Full Command with PATH: " . $fullCommand);
+    }
+    
+    $output = shell_exec($fullCommand);
     
     if (DEBUG_MODE) {
         error_log("Claude Output: " . ($output ?? 'NULL'));
