@@ -7,14 +7,25 @@ require_once 'config.php';
  * @return string 'ja' または 'zh-tw'
  */
 function detectLanguage($text) {
-    // 日本語の文字（ひらがな、カタカナ、漢字）を含むかチェック
-    if (preg_match('/[\x{3040}-\x{309F}\x{30A0}-\x{30FF}\x{4E00}-\x{9FAF}]/u', $text)) {
-        // さらに詳細に日本語かどうかをチェック
-        if (preg_match('/[\x{3040}-\x{309F}\x{30A0}-\x{30FF}]/u', $text)) {
-            // ひらがなまたはカタカナが含まれている場合は確実に日本語
-            return 'ja';
+    // ひらがな・カタカナが含まれている場合は確実に日本語
+    if (preg_match('/[\x{3040}-\x{309F}\x{30A0}-\x{30FF}]/u', $text)) {
+        return 'ja';
+    }
+    
+    // 漢字のみの場合
+    if (preg_match('/[\x{4E00}-\x{9FAF}]/u', $text)) {
+        // 繁体中文特有の文字をチェック
+        if (preg_match('/[\x{4E00}-\x{9FFF}]/u', $text) && 
+            !preg_match('/[\x{3040}-\x{309F}\x{30A0}-\x{30FF}]/u', $text)) {
+            
+            // 簡易的に文字数で判断（短い場合は中文として扱う）
+            if (mb_strlen($text) <= 10) {
+                return 'zh-hant';
+            }
+            
+            // 長い場合はデフォルトで中文
+            return 'zh-hant';
         }
-        // 漢字のみの場合は文脈で判断（簡易的に日本語として扱う）
         return 'ja';
     }
     
