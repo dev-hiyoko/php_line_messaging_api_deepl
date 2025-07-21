@@ -88,10 +88,17 @@ function isMentioned($text, $event) {
  * @return string メンション除去後のテキスト
  */
 function removeMention($text) {
-    // @記号でのメンションを除去
-    $text = preg_replace('/^@\S+\s*/', '', $text);
+    // @記号でのメンションを除去（改行対応）
+    $text = preg_replace('/^@[^\s\n]+\s*\n?/', '', $text);
     
-    // LINE特殊文字（メンション）を除去 - 修正版
+    // 複数行の場合、最初の行が@で始まっていれば除去
+    $lines = explode("\n", $text);
+    if (count($lines) > 1 && preg_match('/^@/', $lines[0])) {
+        array_shift($lines);
+        $text = implode("\n", $lines);
+    }
+    
+    // LINE特殊文字（メンション）を除去
     $text = preg_replace('/[\x{E000}-\x{E0FF}]+/u', '', $text);
     
     return trim($text);
