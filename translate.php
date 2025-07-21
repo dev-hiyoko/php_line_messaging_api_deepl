@@ -37,18 +37,20 @@ function translateText($text, $sourceLang, $targetLang) {
         ];
     }
     
-    $postData = [
-        'auth_key' => DEEPL_API_KEY,
-        'text' => $text,
+    $postData = json_encode([
+        'text' => [$text],
         'source_lang' => strtoupper($sourceLang),
-        'target_lang' => strtoupper(str_replace('-', '_', $targetLang))
-    ];
+        'target_lang' => strtoupper($targetLang)
+    ]);
     
     $options = [
         'http' => [
             'method' => 'POST',
-            'header' => 'Content-Type: application/x-www-form-urlencoded',
-            'content' => http_build_query($postData)
+            'header' => [
+                'Content-Type: application/json',
+                'Authorization: DeepL-Auth-Key ' . DEEPL_API_KEY
+            ],
+            'content' => $postData
         ]
     ];
     
@@ -97,10 +99,10 @@ function processTranslation($inputText) {
     $detectedLang = detectLanguage($inputText);
     
     if ($detectedLang === 'ja') {
-        // 日本語 → 繁体中文
-        $result = translateText($inputText, 'ja', 'zh-tw');
+        // 日本語 → 中文
+        $result = translateText($inputText, 'ja', 'zh');
     } else {
-        // 繁体中文 → 日本語
+        // 中文 → 日本語
         $result = translateText($inputText, 'zh', 'ja');
     }
     
