@@ -178,16 +178,27 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     // Claudeコマンドを実行（複数のパスを試行）
     $claudePaths = [
+        '/home/' . get_current_user() . '/.nodebrew/current/bin/claude',
+        '~/.nodebrew/current/bin/claude',
         '/usr/local/bin/claude',
-        '/usr/bin/claude',
+        '/usr/bin/claude', 
         '/bin/claude',
+        '/home/' . get_current_user() . '/.local/bin/claude',
         'claude' // 最後にPATHから検索
     ];
     
     $command = null;
     foreach ($claudePaths as $path) {
+        // チルダを絶対パスに変換
+        if (strpos($path, '~') === 0) {
+            $path = str_replace('~', '/home/' . get_current_user(), $path);
+        }
+        
         if ($path === 'claude' || file_exists($path)) {
             $command = $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            if (DEBUG_MODE) {
+                error_log("Found Claude at: " . $path);
+            }
             break;
         }
     }
