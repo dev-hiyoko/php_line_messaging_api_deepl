@@ -48,19 +48,23 @@ function translateText($text, $sourceLang, $targetLang) {
         ];
     }
     
-    $postData = json_encode([
+    $postData = [
         'text' => [$text],
-        'source_lang' => strtoupper($sourceLang),
         'target_lang' => strtoupper($targetLang)
-    ]);
+    ];
+    
+    // source_langは省略可能（DeepLが自動検出）
+    if ($sourceLang !== 'auto') {
+        $postData['source_lang'] = strtoupper($sourceLang);
+    }
+    
+    $postData = json_encode($postData);
     
     $options = [
         'http' => [
             'method' => 'POST',
-            'header' => [
-                'Content-Type: application/json',
-                'Authorization: DeepL-Auth-Key ' . DEEPL_API_KEY
-            ],
+            'header' => "Content-Type: application/json\r\n" .
+                       "Authorization: DeepL-Auth-Key " . DEEPL_API_KEY . "\r\n",
             'content' => $postData
         ]
     ];
