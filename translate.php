@@ -69,13 +69,19 @@ function translateText($text, $sourceLang, $targetLang) {
         ]
     ];
     
+    if (DEBUG_MODE) {
+        error_log("DeepL Request: URL=" . DEEPL_API_URL . ", Data=" . $postData);
+    }
+    
     $context = stream_context_create($options);
-    $response = @file_get_contents(DEEPL_API_URL, false, $context);
+    $response = file_get_contents(DEEPL_API_URL, false, $context);
     
     if ($response === false) {
         $error = error_get_last();
         if (DEBUG_MODE) {
             error_log("DeepL API Error: " . json_encode($error));
+            $http_response_header_string = isset($http_response_header) ? implode("\n", $http_response_header) : "No headers";
+            error_log("HTTP Headers: " . $http_response_header_string);
         }
         return [
             'success' => false,
