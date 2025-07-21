@@ -65,20 +65,17 @@ function isMentioned($text, $event) {
         return true;
     }
     
-    // グループ・ルームチャットの場合はメンション情報をチェック
+    // グループ・ルームチャットの場合は公式アカウント（Bot）へのメンションのみチェック
     if (isset($event['message']['mention']['mentionees'])) {
         foreach ($event['message']['mention']['mentionees'] as $mentionee) {
+            // isSelfがtrueの場合のみ反応（公式アカウント自身がメンションされた場合）
             if (isset($mentionee['isSelf']) && $mentionee['isSelf'] === true) {
-                return true; // Botがメンションされている
+                return true;
             }
         }
     }
     
-    // メンション記号での簡易判定（@で始まる場合）
-    if (preg_match('/^@\S+\s+/', $text)) {
-        return true;
-    }
-    
+    // 他のユーザーへのメンションや一般的な@記号には反応しない
     return false;
 }
 
