@@ -20,17 +20,17 @@ function detectLanguage($text) {
             
             // 簡易的に文字数で判断（短い場合は中文として扱う）
             if (mb_strlen($text) <= 10) {
-                return 'zh-hant';
+                return 'zh';
             }
             
             // 長い場合はデフォルトで中文
-            return 'zh-hant';
+            return 'zh';
         }
         return 'ja';
     }
     
-    // その他の場合は繁体中文として扱う
-    return 'zh-hant';
+    // その他の場合は中国語として扱う
+    return 'zh';
 }
 
 /**
@@ -69,6 +69,10 @@ function translateText($text, $sourceLang, $targetLang) {
     $response = @file_get_contents(DEEPL_API_URL, false, $context);
     
     if ($response === false) {
+        $error = error_get_last();
+        if (DEBUG_MODE) {
+            error_log("DeepL API Error: " . json_encode($error));
+        }
         return [
             'success' => false,
             'error' => ERROR_TRANSLATION_FAILED
@@ -77,9 +81,16 @@ function translateText($text, $sourceLang, $targetLang) {
     
     $responseData = json_decode($response, true);
     
+    if (DEBUG_MODE) {
+        error_log("DeepL API Response: " . $response);
+    }
+    
     if (!$responseData || !isset($responseData['translations'])) {
         // エラーレスポンスをチェック
         if (isset($responseData['message'])) {
+            if (DEBUG_MODE) {
+                error_log("DeepL Error Message: " . $responseData['message']);
+            }
             if (strpos($responseData['message'], 'quota') !== false) {
                 return [
                     'success' => false,
@@ -111,10 +122,10 @@ function processTranslation($inputText) {
     
     if ($detectedLang === 'ja') {
         // 日本語 → 繁体中文
-        $result = translateText($inputText, 'ja', 'zh-hant');
+        $result = translateText($inputText, 'JA', 'ZH-HANT');
     } else {
         // 繁体中文 → 日本語
-        $result = translateText($inputText, 'zh-hant', 'ja');
+        $result = translateText($inputText, 'ZH-HANT', 'JA');
     }
     
     if (DEBUG_MODE) {
