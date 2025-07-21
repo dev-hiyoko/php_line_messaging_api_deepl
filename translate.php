@@ -203,11 +203,30 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // メモリ制限を大幅に緩和してClaude実行
-            $command = "timeout 30s bash -c 'ulimit -v unlimited; export NODE_OPTIONS=\"--max-old-space-size=1024\"; " . $path . " -p " . escapeshellarg($prompt) . "' 2>&1";
+            // shファイルを作成してClaude実行
+            $tempDir = sys_get_temp_dir();
+            $scriptFile = $tempDir . '/claude_translate_' . uniqid() . '.sh';
+            
+            $scriptContent = "#!/bin/bash\n";
+            $scriptContent .= "export NODE_OPTIONS=\"--max-old-space-size=1024\"\n";
+            $scriptContent .= "export PATH=\"/home/" . get_current_user() . "/.nodebrew/current/bin:\$PATH\"\n";
+            $scriptContent .= "cd " . escapeshellarg(dirname($path)) . "\n";
+            $scriptContent .= "timeout 30s " . $path . " -p " . escapeshellarg($prompt) . " 2>&1\n";
+            
+            if (file_put_contents($scriptFile, $scriptContent) === false) {
+                if (DEBUG_MODE) {
+                    error_log("Failed to create script file: " . $scriptFile);
+                }
+                continue;
+            }
+            
+            chmod($scriptFile, 0755);
+            $command = "bash " . escapeshellarg($scriptFile) . " 2>&1; rm -f " . escapeshellarg($scriptFile);
+            
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
-                error_log("Using unlimited memory with large Node.js heap");
+                error_log("Created script file: " . $scriptFile);
+                error_log("Script content: " . $scriptContent);
             }
             break;
         }
