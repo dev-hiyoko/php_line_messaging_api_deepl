@@ -19,7 +19,7 @@ function detectLanguage($text) {
     }
     
     // その他の場合は繁体中文として扱う
-    return 'zh-tw';
+    return 'zh-hant';
 }
 
 /**
@@ -99,11 +99,11 @@ function processTranslation($inputText) {
     $detectedLang = detectLanguage($inputText);
     
     if ($detectedLang === 'ja') {
-        // 日本語 → 中文
-        $result = translateText($inputText, 'ja', 'zh');
+        // 日本語 → 繁体中文
+        $result = translateText($inputText, 'ja', 'zh-hant');
     } else {
-        // 中文 → 日本語
-        $result = translateText($inputText, 'zh', 'ja');
+        // 繁体中文 → 日本語
+        $result = translateText($inputText, 'zh-hant', 'ja');
     }
     
     if (DEBUG_MODE) {
