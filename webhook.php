@@ -37,7 +37,7 @@ function sendLineMessage($replyToken, $message) {
             'method' => 'POST',
             'header' => [
                 'Content-Type: application/json',
-                'Authorization: Bearer ' . LINE_CHANNEL_SECRET
+                'Authorization: Bearer ' . LINE_CHANNEL_ACCESS_TOKEN
             ],
             'content' => json_encode($postData)
         ]

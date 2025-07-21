@@ -18,6 +18,7 @@
 
 1. **LINE Messaging API**
    - Channel Secret
+   - Channel Access Token
    - Webhook URL設定
 
 2. **DeepL API**
@@ -39,6 +40,7 @@ cp config.sample.php config.php
 3. `config.php`にAPIキーを設定
 ```php
 const LINE_CHANNEL_SECRET = 'your_line_channel_secret';
+const LINE_CHANNEL_ACCESS_TOKEN = 'your_line_channel_access_token';
 const DEEPL_API_KEY = 'your_deepl_api_key';
 ```
 

@@ -1,6 +1,7 @@
 <?php
 // LINE Messaging API設定
 const LINE_CHANNEL_SECRET = 'your_line_channel_secret_here';
+const LINE_CHANNEL_ACCESS_TOKEN = 'your_line_channel_access_token_here';
 const LINE_API_URL = 'https://api.line.me/v2/bot/message/reply';
 
 // DeepL API設定
