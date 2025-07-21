@@ -184,63 +184,25 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $prompt .= ". Return only the translated text without any explanation.";
     
-    // Claudeコマンドを実行（複数のパスを試行）
-    $claudePaths = [
-        '/home/' . get_current_user() . '/.nodebrew/current/bin/claude',
-        '~/.nodebrew/current/bin/claude',
-        '/usr/local/bin/claude',
-        '/usr/bin/claude', 
-        '/bin/claude',
-        '/home/' . get_current_user() . '/.local/bin/claude',
-        'claude' // 最後にPATHから検索
-    ];
-    // Translate the following text from Chinese to Japanese: 它在中文中有效嗎？
-    $command = null;
-    foreach ($claudePaths as $path) {
-        // チルダを絶対パスに変換
-        if (strpos($path, '~') === 0) {
-            $path = str_replace('~', '/home/' . get_current_user(), $path);
-        }
-        
-        if ($path === 'claude' || file_exists($path)) {
-            // shファイルを作成してClaude実行
-            $tempDir = sys_get_temp_dir();
-            $scriptFile = $tempDir . '/claude_translate_' . uniqid() . '.sh';
-            
-            $scriptContent = "#!/bin/bash\n";
-            $scriptContent .= "export NODE_OPTIONS=\"--max-old-space-size=1024\"\n";
-            $scriptContent .= "export PATH=\"/home/" . get_current_user() . "/.nodebrew/current/bin:\$PATH\"\n";
-            $scriptContent .= "cd " . escapeshellarg(dirname($path)) . "\n";
-            $scriptContent .= "timeout 30s " . $path . " -p " . escapeshellarg($prompt) . " 2>&1\n";
-            
-            if (file_put_contents($scriptFile, $scriptContent) === false) {
-                if (DEBUG_MODE) {
-                    error_log("Failed to create script file: " . $scriptFile);
-                }
-                continue;
-            }
-            
-            chmod($scriptFile, 0755);
-            $command = "bash " . escapeshellarg($scriptFile) . " 2>&1; rm -f " . escapeshellarg($scriptFile);
-            
-            if (DEBUG_MODE) {
-                error_log("Found Claude at: " . $path);
-                error_log("Created script file: " . $scriptFile);
-                error_log("Script content: " . $scriptContent);
-            }
-            break;
-        }
-    }
+    // Claude wrapper scriptを使用してClaude実行
+    $wrapperScript = __DIR__ . '/claude_wrapper.sh';
     
-    if ($command === null) {
+    if (!file_exists($wrapperScript)) {
         if (DEBUG_MODE) {
-            error_log("No valid Claude command path found");
+            error_log("Claude wrapper script not found: " . $wrapperScript);
         }
         return [
             'success' => false,
             'error' => ERROR_TRANSLATION_FAILED
         ];
     }
+    
+    $command = "bash " . escapeshellarg($wrapperScript) . " " . escapeshellarg($prompt) . " 2>&1";
+    
+    if (DEBUG_MODE) {
+        error_log("Using Claude wrapper script: " . $wrapperScript);
+    }
+    
     
     if (DEBUG_MODE) {
         error_log("Claude Command: " . $command);
