@@ -155,7 +155,15 @@ function handleWebhookEvent($event) {
     }
     
     // 翻訳処理
+    if (DEBUG_MODE) {
+        error_log("Starting translation for: " . $cleanText);
+    }
+    
     $translationResult = processTranslation($cleanText);
+    
+    if (DEBUG_MODE) {
+        error_log("Translation complete: " . json_encode($translationResult));
+    }
     
     if ($translationResult['success']) {
         $responseMessage = $translationResult['translated_text'];
@@ -164,6 +172,10 @@ function handleWebhookEvent($event) {
     }
     
     // LINE返信
+    if (DEBUG_MODE) {
+        error_log("Sending LINE message: " . $responseMessage);
+    }
+    
     sendLineMessage($replyToken, $responseMessage);
 }
 
