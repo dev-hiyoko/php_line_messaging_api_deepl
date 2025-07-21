@@ -12,6 +12,11 @@ function detectLanguage($text) {
         return 'ja';
     }
     
+    // 英語パターン（アルファベットのみ、または一般的な英語記号を含む）
+    if (preg_match('/^[a-zA-Z0-9\s\.,!?\'";\-:()]+$/u', $text)) {
+        return 'en';
+    }
+    
     // 漢字のみの場合
     if (preg_match('/[\x{4E00}-\x{9FAF}]/u', $text)) {
         // 繁体中文特有の文字をチェック
@@ -133,6 +138,9 @@ function processTranslation($inputText) {
     if ($detectedLang === 'ja') {
         // 日本語 → 繁体中文
         $result = translateText($inputText, 'JA', 'ZH-HANT');
+    } else if ($detectedLang === 'en') {
+        // 英語 → 日本語
+        $result = translateText($inputText, 'EN', 'JA');
     } else {
         // 中国語 → 日本語（source_langは自動検出）
         $result = translateText($inputText, 'auto', 'JA');
