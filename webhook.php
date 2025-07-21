@@ -150,25 +150,40 @@ function handleWebhookEvent($event) {
     $cleanText = removeMentionFromEvent($inputText, $event);
     
     if (empty(trim($cleanText))) {
-        sendLineMessage($replyToken, '翻訳したいテキストを入力してください。');
+        sendLineMessage($replyToken, ERROR_EMPTY_MESSAGE);
         return;
     }
     
-    // 翻訳処理
+    // 翻訳処理（タイムアウト対策）
     if (DEBUG_MODE) {
         error_log("Starting translation for: " . $cleanText);
     }
     
-    $translationResult = processTranslation($cleanText);
-    
-    if (DEBUG_MODE) {
-        error_log("Translation complete: " . json_encode($translationResult));
+    try {
+        // 最大実行時間を設定（20秒）
+        set_time_limit(20);
+        
+        $translationResult = processTranslation($cleanText);
+        
+        if (DEBUG_MODE) {
+            error_log("Translation complete: " . json_encode($translationResult));
+        }
+        
+        if ($translationResult['success']) {
+            $responseMessage = $translationResult['translated_text'];
+        } else {
+            $responseMessage = $translationResult['error'];
+        }
+    } catch (Exception $e) {
+        if (DEBUG_MODE) {
+            error_log("Translation exception: " . $e->getMessage());
+        }
+        $responseMessage = ERROR_TRANSLATION_FAILED;
     }
     
-    if ($translationResult['success']) {
-        $responseMessage = $translationResult['translated_text'];
-    } else {
-        $responseMessage = $translationResult['error'];
+    // エラーが発生しても必ずLINEに返信
+    if (empty($responseMessage)) {
+        $responseMessage = ERROR_TRANSLATION_FAILED;
     }
     
     // LINE返信
@@ -176,7 +191,11 @@ function handleWebhookEvent($event) {
         error_log("Sending LINE message: " . $responseMessage);
     }
     
-    sendLineMessage($replyToken, $responseMessage);
+    $lineResult = sendLineMessage($replyToken, $responseMessage);
+    
+    if (DEBUG_MODE) {
+        error_log("LINE send result: " . ($lineResult ? "success" : "failed"));
+    }
 }
 
 // メイン処理
