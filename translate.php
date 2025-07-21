@@ -129,6 +129,70 @@ function translateText($text, $sourceLang, $targetLang) {
 }
 
 /**
+ * Claudeコマンドを使用して翻訳する
+ * @param string $text 翻訳するテキスト
+ * @param string $sourceLang 元言語
+ * @param string $targetLang 翻訳先言語
+ * @return array 翻訳結果またはエラー情報
+ */
+function translateWithClaude($text, $sourceLang, $targetLang) {
+    if (empty(trim($text))) {
+        return [
+            'success' => false,
+            'error' => ERROR_EMPTY_MESSAGE
+        ];
+    }
+    
+    // 翻訳プロンプトを作成
+    $prompt = "Translate the following text ";
+    
+    if ($sourceLang === 'ja' && $targetLang === 'zh-hant') {
+        $prompt .= "from Japanese to Traditional Chinese (Taiwan): \"$text\"";
+    } else if ($sourceLang === 'en' && $targetLang === 'ja') {
+        $prompt .= "from English to Japanese: \"$text\"";
+    } else if ($targetLang === 'ja') {
+        $prompt .= "from Chinese to Japanese: \"$text\"";
+    } else {
+        $prompt .= "to the appropriate language: \"$text\"";
+    }
+    
+    $prompt .= ". Return only the translated text without any explanation.";
+    
+    // Claudeコマンドを実行
+    $command = "claude -p " . escapeshellarg($prompt) . " 2>&1";
+    
+    if (DEBUG_MODE) {
+        error_log("Claude Command: " . $command);
+    }
+    
+    $output = shell_exec($command);
+    
+    if ($output === null || trim($output) === '') {
+        return [
+            'success' => false,
+            'error' => ERROR_TRANSLATION_FAILED
+        ];
+    }
+    
+    $translatedText = trim($output);
+    
+    // エラーメッセージのチェック
+    if (strpos($translatedText, 'Error:') !== false || 
+        strpos($translatedText, 'command not found') !== false) {
+        return [
+            'success' => false,
+            'error' => ERROR_TRANSLATION_FAILED
+        ];
+    }
+    
+    return [
+        'success' => true,
+        'translated_text' => $translatedText,
+        'detected_source_language' => $sourceLang
+    ];
+}
+
+/**
  * メインの翻訳処理
  * @param string $inputText 入力テキスト
  * @return array 翻訳結果
@@ -136,19 +200,28 @@ function translateText($text, $sourceLang, $targetLang) {
 function processTranslation($inputText) {
     $detectedLang = detectLanguage($inputText);
     
-    if ($detectedLang === 'ja') {
-        // 日本語 → 繁体中文
-        $result = translateText($inputText, 'JA', 'ZH-HANT');
-    } else if ($detectedLang === 'en') {
-        // 英語 → 日本語
-        $result = translateText($inputText, 'EN', 'JA');
+    // 翻訳方法を選択
+    if (TRANSLATION_METHOD === 'claude') {
+        if ($detectedLang === 'ja') {
+            $result = translateWithClaude($inputText, 'ja', 'zh-hant');
+        } else if ($detectedLang === 'en') {
+            $result = translateWithClaude($inputText, 'en', 'ja');
+        } else {
+            $result = translateWithClaude($inputText, 'zh', 'ja');
+        }
     } else {
-        // 中国語 → 日本語（source_langは自動検出）
-        $result = translateText($inputText, 'auto', 'JA');
+        // DeepL翻訳
+        if ($detectedLang === 'ja') {
+            $result = translateText($inputText, 'JA', 'ZH-HANT');
+        } else if ($detectedLang === 'en') {
+            $result = translateText($inputText, 'EN', 'JA');
+        } else {
+            $result = translateText($inputText, 'auto', 'JA');
+        }
     }
     
     if (DEBUG_MODE) {
-        error_log("Translation - Input: $inputText, Detected: $detectedLang, Result: " . json_encode($result));
+        error_log("Translation - Method: " . TRANSLATION_METHOD . ", Input: $inputText, Detected: $detectedLang, Result: " . json_encode($result));
     }
     
     return $result;
