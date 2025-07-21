@@ -143,14 +143,6 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         ];
     }
     
-    // PHP実行時にメモリ制限を緩和
-    ini_set('memory_limit', '4096M');
-    
-    // 子プロセスに十分なメモリを割り当て
-    if (function_exists('proc_open')) {
-        putenv('NODE_OPTIONS=--max-old-space-size=512');
-    }
-    
     // Claudeコマンドが利用可能かチェック
     $checkCommand = "which claude 2>&1";
     $claudePath = shell_exec($checkCommand);
@@ -184,12 +176,36 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $prompt .= ". Return only the translated text without any explanation.";
     
-    // Claude wrapper scriptを使用してClaude実行
-    $wrapperScript = __DIR__ . '/claude_wrapper.sh';
+    // Claudeコマンドを実行（複数のパスを試行）
+    $claudePaths = [
+        '/home/' . get_current_user() . '/.nodebrew/current/bin/claude',
+        '~/.nodebrew/current/bin/claude',
+        '/usr/local/bin/claude',
+        '/usr/bin/claude', 
+        '/bin/claude',
+        '/home/' . get_current_user() . '/.local/bin/claude',
+        'claude' // 最後にPATHから検索
+    ];
     
-    if (!file_exists($wrapperScript)) {
+    $command = null;
+    foreach ($claudePaths as $path) {
+        // チルダを絶対パスに変換
+        if (strpos($path, '~') === 0) {
+            $path = str_replace('~', '/home/' . get_current_user(), $path);
+        }
+        
+        if ($path === 'claude' || file_exists($path)) {
+            $command = $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            if (DEBUG_MODE) {
+                error_log("Found Claude at: " . $path);
+            }
+            break;
+        }
+    }
+    
+    if ($command === null) {
         if (DEBUG_MODE) {
-            error_log("Claude wrapper script not found: " . $wrapperScript);
+            error_log("No valid Claude command path found");
         }
         return [
             'success' => false,
@@ -197,23 +213,11 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         ];
     }
     
-    $command = "bash " . escapeshellarg($wrapperScript) . " " . escapeshellarg($prompt) . " 2>&1";
-    
-    if (DEBUG_MODE) {
-        error_log("Using Claude wrapper script: " . $wrapperScript);
-    }
-    
-    
     if (DEBUG_MODE) {
         error_log("Claude Command: " . $command);
-        
-        // デバッグ: 実際の環境でNode.jsの制限を確認
-        $nodeInfoCommand = "node -p 'process.memoryUsage()' 2>&1";
-        $nodeInfo = shell_exec($nodeInfoCommand);
-        error_log("Node.js memory info: " . ($nodeInfo ?? 'NULL'));
     }
     
-    // 環境変数PATHとNODE_OPTIONSを設定して実行
+    // 環境変数PATHを設定して実行（nodebrewのパスを含める）
     $homeDir = '/home/' . get_current_user();
     $envPath = $homeDir . '/.nodebrew/current/bin:/usr/local/bin:/usr/bin:/bin';
     $fullCommand = "PATH=" . $envPath . " " . $command;
