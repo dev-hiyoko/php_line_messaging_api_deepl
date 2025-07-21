@@ -143,6 +143,14 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         ];
     }
     
+    // PHP実行時にメモリ制限を緩和
+    ini_set('memory_limit', '4096M');
+    
+    // 子プロセスに十分なメモリを割り当て
+    if (function_exists('proc_open')) {
+        putenv('NODE_OPTIONS=--max-old-space-size=512');
+    }
+    
     // Claudeコマンドが利用可能かチェック
     $checkCommand = "which claude 2>&1";
     $claudePath = shell_exec($checkCommand);
@@ -195,11 +203,11 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // bashを使って独立したプロセスでClaude実行
-            $command = "timeout 30s bash -c 'export NODE_OPTIONS=\"--max-old-space-size=64\"; " . $path . " -p " . escapeshellarg($prompt) . "' 2>&1";
+            // メモリ制限を大幅に緩和してClaude実行
+            $command = "timeout 30s bash -c 'ulimit -v unlimited; export NODE_OPTIONS=\"--max-old-space-size=1024\"; " . $path . " -p " . escapeshellarg($prompt) . "' 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
-                error_log("Using bash wrapper with independent process");
+                error_log("Using unlimited memory with large Node.js heap");
             }
             break;
         }
