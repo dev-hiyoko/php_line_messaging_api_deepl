@@ -195,11 +195,11 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // 環境変数でNode.jsメモリ制限を設定してClaude実行
-            $command = "timeout 30s env NODE_OPTIONS='--max-old-space-size=256' " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            // より厳しいメモリ制限でClaude実行
+            $command = "timeout 30s env NODE_OPTIONS='--max-old-space-size=128 --max-semi-space-size=16' " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
-                error_log("Using NODE_OPTIONS for memory limit");
+                error_log("Using strict NODE_OPTIONS for memory limit");
             }
             break;
         }
