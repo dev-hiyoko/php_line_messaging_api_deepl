@@ -217,8 +217,9 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         error_log("Claude Command: " . $command);
     }
     
-    // 環境変数PATHを設定して実行
-    $envPath = '/usr/local/bin:/usr/bin:/bin';
+    // 環境変数PATHを設定して実行（nodebrewのパスを含める）
+    $homeDir = '/home/' . get_current_user();
+    $envPath = $homeDir . '/.nodebrew/current/bin:/usr/local/bin:/usr/bin:/bin';
     $fullCommand = "PATH=" . $envPath . " " . $command;
     
     if (DEBUG_MODE) {
