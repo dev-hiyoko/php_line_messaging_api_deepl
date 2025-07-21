@@ -70,7 +70,8 @@ function translateText($text, $sourceLang, $targetLang) {
             'method' => 'POST',
             'header' => "Content-Type: application/json\r\n" .
                        "Authorization: DeepL-Auth-Key " . DEEPL_API_KEY . "\r\n",
-            'content' => $postData
+            'content' => $postData,
+            'timeout' => 10 // 10秒のタイムアウト
         ]
     ];
     
@@ -79,7 +80,7 @@ function translateText($text, $sourceLang, $targetLang) {
     }
     
     $context = stream_context_create($options);
-    $response = file_get_contents(DEEPL_API_URL, false, $context);
+    $response = @file_get_contents(DEEPL_API_URL, false, $context);
     
     if ($response === false) {
         $error = error_get_last();
