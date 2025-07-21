@@ -195,8 +195,8 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // 軽量実行（メモリ制限を緩和）
-            $command = "timeout 30s " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            // メモリ制限付きで実行
+            $command = "env NODE_OPTIONS='--max-old-space-size=256' timeout 30s " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
             }
@@ -218,10 +218,10 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         error_log("Claude Command: " . $command);
     }
     
-    // 環境変数PATHとNODE_OPTIONSを設定して実行
+    // 環境変数PATHを設定して実行
     $homeDir = '/home/' . get_current_user();
     $envPath = $homeDir . '/.nodebrew/current/bin:/usr/local/bin:/usr/bin:/bin';
-    $fullCommand = "PATH=" . $envPath . " NODE_OPTIONS='--max-old-space-size=256' " . $command;
+    $fullCommand = "PATH=" . $envPath . " " . $command;
     
     if (DEBUG_MODE) {
         error_log("Full Command with PATH: " . $fullCommand);
