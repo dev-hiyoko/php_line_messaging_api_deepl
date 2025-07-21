@@ -88,12 +88,39 @@ function isMentioned($text, $event) {
  * @return string メンション除去後のテキスト
  */
 function removeMention($text) {
-    // "@a++ translater " のような文字列を除去
-    // @から次のスペースまでを除去
-    $text = preg_replace('/^@\S+\s+/', '', $text);
+    // LINEのメンション情報がある場合、先頭15文字を除去
+    if (strpos($text, '@') === 0) {
+        // "@a++ translater " (15文字) を除去
+        $text = substr($text, 15);
+    }
     
-    // 行の先頭の@から改行までを除去（複数行対応）
-    $text = preg_replace('/^@.*?\n/m', '', $text);
+    // LINE特殊文字（メンション）を除去
+    $text = preg_replace('/[\x{E000}-\x{E0FF}]+/u', '', $text);
+    
+    return trim($text);
+}
+
+/**
+ * イベント情報を使用してメンション文字列を除去する
+ * @param string $text メッセージテキスト
+ * @param array $event LINEイベントデータ
+ * @return string メンション除去後のテキスト
+ */
+function removeMentionFromEvent($text, $event) {
+    if (isset($event['message']['mention']['mentionees'])) {
+        foreach ($event['message']['mention']['mentionees'] as $mentionee) {
+            if (isset($mentionee['isSelf']) && $mentionee['isSelf'] === true) {
+                $index = $mentionee['index'];
+                $length = $mentionee['length'];
+                
+                // メンション部分を除去
+                $before = mb_substr($text, 0, $index);
+                $after = mb_substr($text, $index + $length);
+                $text = $before . $after;
+                break;
+            }
+        }
+    }
     
     // LINE特殊文字（メンション）を除去
     $text = preg_replace('/[\x{E000}-\x{E0FF}]+/u', '', $text);
@@ -123,7 +150,7 @@ function handleWebhookEvent($event) {
     }
     
     // メンション文字列を除去
-    $cleanText = removeMention($inputText);
+    $cleanText = removeMentionFromEvent($inputText, $event);
     
     if (empty(trim($cleanText))) {
         sendLineMessage($replyToken, '翻訳したいテキストを入力してください。');
