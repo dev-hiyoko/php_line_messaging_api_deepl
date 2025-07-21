@@ -195,11 +195,11 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         }
         
         if ($path === 'claude' || file_exists($path)) {
-            // より厳しいメモリ制限でClaude実行
-            $command = "timeout 30s env NODE_OPTIONS='--max-old-space-size=128 --max-semi-space-size=16' " . $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+            // bashを使って独立したプロセスでClaude実行
+            $command = "timeout 30s bash -c 'export NODE_OPTIONS=\"--max-old-space-size=64\"; " . $path . " -p " . escapeshellarg($prompt) . "' 2>&1";
             if (DEBUG_MODE) {
                 error_log("Found Claude at: " . $path);
-                error_log("Using strict NODE_OPTIONS for memory limit");
+                error_log("Using bash wrapper with independent process");
             }
             break;
         }
@@ -217,6 +217,11 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     if (DEBUG_MODE) {
         error_log("Claude Command: " . $command);
+        
+        // デバッグ: 実際の環境でNode.jsの制限を確認
+        $nodeInfoCommand = "node -p 'process.memoryUsage()' 2>&1";
+        $nodeInfo = shell_exec($nodeInfoCommand);
+        error_log("Node.js memory info: " . ($nodeInfo ?? 'NULL'));
     }
     
     // 環境変数PATHとNODE_OPTIONSを設定して実行
