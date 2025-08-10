@@ -3,8 +3,11 @@ require_once 'config/config.php';
 require_once 'config/error_log_config.php';
 require_once 'translate.php';
 
-// デバッグモードでのアクセスログ
-if (DEBUG_MODE) {
+// デバッグモードでのアクセスログ（強制実行）
+// DEBUG_MODE設定値: " . (defined('DEBUG_MODE') ? (DEBUG_MODE ? 'true' : 'false') : 'undefined')
+file_put_contents('logs/force_debug.log', date('Y-m-d H:i:s') . " - Force debug start\n", FILE_APPEND);
+
+if (true) { // 一時的に強制実行
     $access_log = [
         'timestamp' => date('Y-m-d H:i:s'),
         'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
