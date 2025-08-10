@@ -8,8 +8,13 @@ const LINE_API_URL = 'https://api.line.me/v2/bot/message/reply';
 const DEEPL_API_KEY = 'your_deepl_api_key_here';
 const DEEPL_API_URL = 'https://api-free.deepl.com/v2/translate'; // 無料版の場合
 
+// Claude API設定
+const CLAUDE_API_KEY = 'your_claude_api_key_here';
+const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+const CLAUDE_MODEL = 'claude-3-haiku-20240307'; // またはその他のモデル名
+
 // 翻訳方法の設定 ('deepl' または 'claude')
-const TRANSLATION_METHOD = 'deepl';
+const TRANSLATION_METHOD = 'claude';
 
 // エラーメッセージ
 const ERROR_TRANSLATION_FAILED = 'Translation failed. Please wait a while and try again. Now';

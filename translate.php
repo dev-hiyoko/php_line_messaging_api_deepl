@@ -129,7 +129,7 @@ function translateText($text, $sourceLang, $targetLang) {
 }
 
 /**
- * Claudeコマンドを使用して翻訳する
+ * Claude APIを使用して翻訳する
  * @param string $text 翻訳するテキスト
  * @param string $sourceLang 元言語
  * @param string $targetLang 翻訳先言語
@@ -140,24 +140,6 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         return [
             'success' => false,
             'error' => ERROR_EMPTY_MESSAGE
-        ];
-    }
-    
-    // Claudeコマンドが利用可能かチェック
-    $checkCommand = "which claude 2>&1";
-    $claudePath = shell_exec($checkCommand);
-    
-    if (DEBUG_MODE) {
-        error_log("Claude path check: " . ($claudePath ?? 'NULL'));
-    }
-    
-    if ($claudePath === null || trim($claudePath) === '' || strpos($claudePath, 'not found') !== false) {
-        if (DEBUG_MODE) {
-            error_log("Claude command not found on system");
-        }
-        return [
-            'success' => false,
-            'error' => ERROR_TRANSLATION_FAILED
         ];
     }
     
@@ -176,36 +158,60 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $prompt .= ". Return only the translated text without any explanation.";
     
-    // Claudeコマンドを実行（複数のパスを試行）
-    $claudePaths = [
-        '/home/' . get_current_user() . '/.nodebrew/current/bin/claude',
-        '~/.nodebrew/current/bin/claude',
-        '/usr/local/bin/claude',
-        '/usr/bin/claude', 
-        '/bin/claude',
-        '/home/' . get_current_user() . '/.local/bin/claude',
-        'claude' // 最後にPATHから検索
+    // Claude APIリクエストを準備
+    $postData = [
+        'model' => CLAUDE_MODEL,
+        'max_tokens' => 1024,
+        'messages' => [
+            [
+                'role' => 'user',
+                'content' => $prompt
+            ]
+        ]
     ];
     
-    $command = null;
-    foreach ($claudePaths as $path) {
-        // チルダを絶対パスに変換
-        if (strpos($path, '~') === 0) {
-            $path = str_replace('~', '/home/' . get_current_user(), $path);
+    $options = [
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/json\r\n" .
+                       "x-api-key: " . CLAUDE_API_KEY . "\r\n" .
+                       "anthropic-version: 2023-06-01\r\n",
+            'content' => json_encode($postData),
+            'timeout' => 15
+        ]
+    ];
+    
+    if (DEBUG_MODE) {
+        error_log("Claude API Request: " . json_encode($postData));
+    }
+    
+    $context = stream_context_create($options);
+    $response = @file_get_contents(CLAUDE_API_URL, false, $context);
+    
+    if ($response === false) {
+        $error = error_get_last();
+        if (DEBUG_MODE) {
+            error_log("Claude API Error: " . json_encode($error));
+            $http_response_header_string = isset($http_response_header) ? implode("\n", $http_response_header) : "No headers";
+            error_log("HTTP Headers: " . $http_response_header_string);
         }
-        
-        if ($path === 'claude' || file_exists($path)) {
-            $command = $path . " -p " . escapeshellarg($prompt) . " 2>&1";
+        return [
+            'success' => false,
+            'error' => ERROR_TRANSLATION_FAILED
+        ];
+    }
+    
+    $responseData = json_decode($response, true);
+    
+    if (DEBUG_MODE) {
+        error_log("Claude API Response: " . $response);
+    }
+    
+    if (!$responseData || !isset($responseData['content'])) {
+        if (isset($responseData['error'])) {
             if (DEBUG_MODE) {
-                error_log("Found Claude at: " . $path);
+                error_log("Claude Error: " . json_encode($responseData['error']));
             }
-            break;
-        }
-    }
-    
-    if ($command === null) {
-        if (DEBUG_MODE) {
-            error_log("No valid Claude command path found");
         }
         return [
             'success' => false,
@@ -213,51 +219,7 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
         ];
     }
     
-    if (DEBUG_MODE) {
-        error_log("Claude Command: " . $command);
-    }
-    
-    // 環境変数PATHを設定して実行（nodebrewのパスを含める）
-    $homeDir = '/home/' . get_current_user();
-    $envPath = $homeDir . '/.nodebrew/current/bin:/usr/local/bin:/usr/bin:/bin';
-    $fullCommand = "PATH=" . $envPath . " " . $command;
-    
-    if (DEBUG_MODE) {
-        error_log("Full Command with PATH: " . $fullCommand);
-    }
-    
-    $output = shell_exec($fullCommand);
-    
-    if (DEBUG_MODE) {
-        error_log("Claude Output: " . ($output ?? 'NULL'));
-    }
-    
-    if ($output === null || trim($output) === '') {
-        if (DEBUG_MODE) {
-            error_log("Claude command returned null or empty output");
-        }
-        return [
-            'success' => false,
-            'error' => ERROR_TRANSLATION_FAILED
-        ];
-    }
-    
-    $translatedText = trim($output);
-    
-    // エラーメッセージのチェック
-    if (strpos($translatedText, 'Error:') !== false || 
-        strpos($translatedText, 'command not found') !== false ||
-        strpos($translatedText, 'No such file') !== false ||
-        strpos($translatedText, 'Permission denied') !== false) {
-        
-        if (DEBUG_MODE) {
-            error_log("Claude command error detected: " . $translatedText);
-        }
-        return [
-            'success' => false,
-            'error' => ERROR_TRANSLATION_FAILED
-        ];
-    }
+    $translatedText = trim($responseData['content'][0]['text']);
     
     return [
         'success' => true,

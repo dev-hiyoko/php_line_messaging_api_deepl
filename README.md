@@ -1,6 +1,6 @@
 # 翻訳LINE Bot
 
-日本語と繁体中文（台湾）の双方向翻訳を行うLINE Botです。DeepL APIを使用して高精度な翻訳を提供します。
+日本語と繁体中文（台湾）の双方向翻訳を行うLINE Botです。DeepL APIまたはClaude APIを使用して高精度な翻訳を提供します。
 
 ## 機能
 
@@ -22,8 +22,9 @@
    - Channel Access Token
    - Webhook URL設定
 
-2. **DeepL API**
-   - API Key（無料版または有料版）
+2. **翻訳API（以下のいずれか）**
+   - **DeepL API**: API Key（無料版または有料版）
+   - **Claude API**: API Key（Anthropic APIキー）
 
 ## セットアップ
 
@@ -40,9 +41,19 @@ cp config.sample.php config.php
 
 3. `config.php`にAPIキーを設定
 ```php
+// LINE設定
 const LINE_CHANNEL_SECRET = 'your_line_channel_secret';
 const LINE_CHANNEL_ACCESS_TOKEN = 'your_line_channel_access_token';
+
+// DeepL設定（DeepLを使用する場合）
 const DEEPL_API_KEY = 'your_deepl_api_key';
+
+// Claude設定（Claudeを使用する場合）
+const CLAUDE_API_KEY = 'your_claude_api_key';
+const CLAUDE_MODEL = 'claude-3-haiku-20240307'; // または他のモデル
+
+// 翻訳方法を選択（'deepl' または 'claude'）
+const TRANSLATION_METHOD = 'deepl';
 ```
 
 4. WebhookURLをLINE Developersコンソールに設定
@@ -55,9 +66,10 @@ https://yourdomain.com/webhook.php
 ```
 transrate_messaging_api/
 ├── webhook.php          # LINE Webhook受信処理
-├── translate.php        # DeepL API翻訳処理
+├── translate.php        # DeepL/Claude API翻訳処理
 ├── config.php          # 設定ファイル
 ├── config.sample.php   # 設定ファイルサンプル
+├── test_claude.php     # Claude API テストスクリプト
 └── README.md
 ```
 
