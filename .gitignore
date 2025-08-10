@@ -1,5 +1,9 @@
 # 設定ファイル（本番用）
-config.php
+config/config.php
+
+# ログファイル
+logs/*.log
+logs/*.txt
 
 
 # 一時ファイル
