@@ -217,6 +217,7 @@ function handleWebhookEvent($event) {
         error_log("Reply token: " . $replyToken);
         error_log("LINE API URL: " . LINE_API_URL);
         error_log("Access token length: " . strlen(LINE_CHANNEL_ACCESS_TOKEN));
+        error_log("Access token first 10 chars: " . substr(LINE_CHANNEL_ACCESS_TOKEN, 0, 10) . "...");
     }
     
     $lineResult = sendLineMessage($replyToken, $responseMessage);
