@@ -13,8 +13,8 @@ php_flag display_errors Off
 # エラーレポーティングレベル
 php_value error_reporting 32767
 
-# ログディレクトリへのアクセスを制限
-<Directory "logs">
+# ログファイルへのアクセスを制限
+<Files "*.log">
     Order allow,deny
     Deny from all
-</Directory>
+</Files>
