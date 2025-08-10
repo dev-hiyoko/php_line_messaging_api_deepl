@@ -1,7 +1,47 @@
 <?php
 // エラーログのテストスクリプト
-require_once '../config/config.php';
-require_once '../config/error_log_config.php';
+echo "Starting log test...\n";
+
+// パスを動的に検出
+$config_paths = [
+    '../config/config.php',
+    'config/config.php',
+];
+
+$error_config_paths = [
+    '../config/error_log_config.php',
+    'config/error_log_config.php',
+];
+
+$config_path = null;
+foreach ($config_paths as $path) {
+    if (file_exists($path)) {
+        $config_path = $path;
+        break;
+    }
+}
+
+$error_config_path = null;
+foreach ($error_config_paths as $path) {
+    if (file_exists($path)) {
+        $error_config_path = $path;
+        break;
+    }
+}
+
+if (!$config_path) {
+    die("Config file not found!\n");
+}
+
+if (!$error_config_path) {
+    die("Error config file not found!\n");
+}
+
+echo "Loading config from: $config_path\n";
+echo "Loading error config from: $error_config_path\n";
+
+require_once $config_path;
+require_once $error_config_path;
 
 echo "Testing error logging on Sakura Internet...\n\n";
 
