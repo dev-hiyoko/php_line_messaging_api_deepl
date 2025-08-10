@@ -33,7 +33,7 @@ function writeLog($message, $level = 'INFO') {
         mkdir($logDir, 0755, true);
     }
     
-    $logFile = $logDir . '/app_error.log';
+    $logFile = $logDir . '/app.log';
     $timestamp = date('Y-m-d H:i:s');
     $logMessage = "[$timestamp] [$level] $message" . PHP_EOL;
     

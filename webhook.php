@@ -3,11 +3,8 @@ require_once 'config/config.php';
 require_once 'config/error_log_config.php';
 require_once 'translate.php';
 
-// デバッグモードでのアクセスログ（強制実行）
-// DEBUG_MODE設定値: " . (defined('DEBUG_MODE') ? (DEBUG_MODE ? 'true' : 'false') : 'undefined')
-file_put_contents('logs/force_debug.log', date('Y-m-d H:i:s') . " - Force debug start\n", FILE_APPEND);
-
-if (true) { // 一時的に強制実行
+// デバッグモードでのアクセスログ
+if (DEBUG_MODE) {
     $access_log = [
         'timestamp' => date('Y-m-d H:i:s'),
         'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
@@ -16,12 +13,8 @@ if (true) { // 一時的に強制実行
         'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'
     ];
     
-    // 複数の方法でログを出力
     writeLog("ACCESS: " . json_encode($access_log), "ACCESS");
     error_log("WEBHOOK ACCESS: " . json_encode($access_log));
-    
-    // ログファイルに直接書き込みもテスト
-    file_put_contents('logs/debug.log', date('Y-m-d H:i:s') . " - Direct write test\n", FILE_APPEND);
 }
 
 /**
