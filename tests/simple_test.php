@@ -9,6 +9,13 @@ $config_path = '../config/config.php';
 echo "Config file exists: " . (file_exists($config_path) ? 'YES' : 'NO') . "\n";
 echo "Config file path: " . realpath($config_path) . "\n";
 
+// ディレクトリ構造を確認
+echo "\nDirectory structure:\n";
+echo "Parent directory contents:\n";
+system('ls -la ../');
+echo "\nConfig directory contents:\n";
+system('ls -la ../config/ 2>/dev/null || echo "Config directory not found"');
+
 if (file_exists($config_path)) {
     echo "Attempting to include config...\n";
     require_once $config_path;
