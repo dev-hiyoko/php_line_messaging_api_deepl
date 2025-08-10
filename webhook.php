@@ -12,7 +12,13 @@ if (DEBUG_MODE) {
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN',
         'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'
     ];
+    
+    // 複数の方法でログを出力
     writeLog("ACCESS: " . json_encode($access_log), "ACCESS");
+    error_log("WEBHOOK ACCESS: " . json_encode($access_log));
+    
+    // ログファイルに直接書き込みもテスト
+    file_put_contents('logs/debug.log', date('Y-m-d H:i:s') . " - Direct write test\n", FILE_APPEND);
 }
 
 /**
