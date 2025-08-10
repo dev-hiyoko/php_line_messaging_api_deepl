@@ -23,3 +23,8 @@ const ERROR_EMPTY_MESSAGE = 'Message is empty.';
 
 // デバッグモード（本番環境では false に設定）
 const DEBUG_MODE = true;
+
+// 許可されたグループ/ルームID（空の配列の場合は全て許可）
+const ALLOWED_ROOM_IDS = [
+    // 'R123456789', // 例: 特定のルームID
+];

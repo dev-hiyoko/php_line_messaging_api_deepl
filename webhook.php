@@ -164,6 +164,39 @@ function handleWebhookEvent($event) {
     
     if (DEBUG_MODE) {
         error_log("Received message: " . $inputText);
+        error_log("Event source type: " . $event['source']['type']);
+        
+        // Room/Group IDをログ出力
+        if (isset($event['source']['groupId'])) {
+            error_log("Group ID: " . $event['source']['groupId']);
+        }
+        if (isset($event['source']['roomId'])) {
+            error_log("Room ID: " . $event['source']['roomId']);
+        }
+        if (isset($event['source']['userId'])) {
+            error_log("User ID: " . $event['source']['userId']);
+        }
+    }
+    
+    // グループ/ルーム制限チェック
+    $isAllowed = true;
+    if (!empty(ALLOWED_GROUP_IDS) || !empty(ALLOWED_ROOM_IDS)) {
+        $isAllowed = false;
+        
+        if (isset($event['source']['groupId']) && in_array($event['source']['groupId'], ALLOWED_GROUP_IDS)) {
+            $isAllowed = true;
+        } elseif (isset($event['source']['roomId']) && in_array($event['source']['roomId'], ALLOWED_ROOM_IDS)) {
+            $isAllowed = true;
+        } elseif (empty(ALLOWED_GROUP_IDS) && empty(ALLOWED_ROOM_IDS)) {
+            $isAllowed = true; // 制限なしの場合
+        }
+        
+        if (!$isAllowed) {
+            if (DEBUG_MODE) {
+                error_log("Access denied - not in allowed group/room");
+            }
+            return;
+        }
     }
     
     // メンション判定
