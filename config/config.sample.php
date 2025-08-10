@@ -20,11 +20,12 @@ const TRANSLATION_METHOD = 'claude';
 const ERROR_TRANSLATION_FAILED = 'Translation failed. Please wait a while and try again. Now';
 const ERROR_CHARACTER_LIMIT = 'DeepL API\'s monthly character limit has been reached. Now';
 const ERROR_EMPTY_MESSAGE = 'Message is empty.';
+const ERROR_GROUP_NOT_ALLOWED = 'Translation service is not available in this group.';
 
 // デバッグモード（本番環境では false に設定）
 const DEBUG_MODE = true;
 
-// 許可されたグループ/ルームID（空の配列の場合は全て許可）
-const ALLOWED_ROOM_IDS = [
-    // 'R123456789', // 例: 特定のルームID
+// 許可されたグループID（空の配列の場合は全て許可）
+const ALLOWED_GROUP_IDS = [
+    // 'C618bba45add1a4ee04ee823f095c77a8', // 例: 特定のグループID
 ];

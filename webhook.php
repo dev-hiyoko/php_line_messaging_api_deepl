@@ -188,6 +188,8 @@ function handleWebhookEvent($event) {
             if (DEBUG_MODE) {
                 error_log("Access denied - not in allowed group");
             }
+            // 許可されていない旨をLINEで送信
+            sendLineMessage($replyToken, ERROR_GROUP_NOT_ALLOWED);
             return;
         }
     }
