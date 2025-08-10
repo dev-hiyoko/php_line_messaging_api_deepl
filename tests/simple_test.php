@@ -4,11 +4,21 @@ echo "PHP is working!\n";
 echo "Current directory: " . getcwd() . "\n";
 echo "Script path: " . __FILE__ . "\n";
 
-// ファイル存在確認
-$config_path = '../config/config.php';
-echo "Config file exists: " . (file_exists($config_path) ? 'YES' : 'NO') . "\n";
-if (file_exists($config_path)) {
-    echo "Config file path: " . realpath($config_path) . "\n";
+// ファイル存在確認 - testsディレクトリから実行する場合
+$test_paths = [
+    '../config/config.php',     // tests/ から見た場合
+    'config/config.php',        // ルートから見た場合
+];
+
+$config_path = null;
+foreach ($test_paths as $path) {
+    echo "Checking path: $path - " . (file_exists($path) ? 'EXISTS' : 'NOT FOUND') . "\n";
+    if (file_exists($path)) {
+        $config_path = $path;
+        echo "Config file found at: $path\n";
+        echo "Real path: " . realpath($path) . "\n";
+        break;
+    }
 }
 
 // ディレクトリ構造を確認
@@ -22,13 +32,13 @@ system('ls -la ../line-translate/ 2>/dev/null || echo "line-translate directory 
 echo "\nLooking for config in line-translate:\n";
 system('ls -la ../line-translate/config/ 2>/dev/null || echo "Config directory not found in line-translate"');
 
-if (file_exists($config_path)) {
-    echo "Attempting to include config...\n";
+if ($config_path) {
+    echo "\nAttempting to include config...\n";
     require_once $config_path;
     echo "Config included successfully!\n";
     echo "DEBUG_MODE defined: " . (defined('DEBUG_MODE') ? 'YES' : 'NO') . "\n";
 } else {
-    echo "Config file not found!\n";
+    echo "\nConfig file not found in any location!\n";
 }
 
 echo "Test completed.\n";
