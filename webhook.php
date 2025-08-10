@@ -70,6 +70,9 @@ function sendLineMessage($replyToken, $message) {
     
     if (DEBUG_MODE) {
         error_log("LINE API Response: " . $response);
+        if (isset($http_response_header)) {
+            error_log("LINE API Headers: " . implode("\n", $http_response_header));
+        }
     }
     
     return $response !== false;
@@ -211,6 +214,9 @@ function handleWebhookEvent($event) {
     // LINE返信
     if (DEBUG_MODE) {
         error_log("Sending LINE message: " . $responseMessage);
+        error_log("Reply token: " . $replyToken);
+        error_log("LINE API URL: " . LINE_API_URL);
+        error_log("Access token length: " . strlen(LINE_CHANNEL_ACCESS_TOKEN));
     }
     
     $lineResult = sendLineMessage($replyToken, $responseMessage);
