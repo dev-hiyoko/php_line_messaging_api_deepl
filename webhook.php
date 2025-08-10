@@ -180,7 +180,8 @@ function handleWebhookEvent($event) {
     
     // グループ/ルーム制限チェック
     $isAllowed = true;
-    if (!empty(ALLOWED_GROUP_IDS) || !empty(ALLOWED_ROOM_IDS)) {
+    if (defined('ALLOWED_GROUP_IDS') && defined('ALLOWED_ROOM_IDS') && 
+        (!empty(ALLOWED_GROUP_IDS) || !empty(ALLOWED_ROOM_IDS))) {
         $isAllowed = false;
         
         if (isset($event['source']['groupId']) && in_array($event['source']['groupId'], ALLOWED_GROUP_IDS)) {
