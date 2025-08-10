@@ -3,6 +3,18 @@ require_once 'config/config.php';
 require_once 'config/error_log_config.php';
 require_once 'translate.php';
 
+// デバッグモードでのアクセスログ
+if (DEBUG_MODE) {
+    $access_log = [
+        'timestamp' => date('Y-m-d H:i:s'),
+        'method' => $_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN',
+        'uri' => $_SERVER['REQUEST_URI'] ?? 'UNKNOWN',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'UNKNOWN',
+        'remote_addr' => $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN'
+    ];
+    writeLog("ACCESS: " . json_encode($access_log), "ACCESS");
+}
+
 /**
  * LINE署名を検証する
  * @param string $channelSecret チャンネルシークレット
