@@ -4,8 +4,16 @@
  * さくらインターネット対応
  */
 
+// ログディレクトリの絶対パスを取得
+$logDir = dirname(__DIR__) . '/logs';
+
+// ログディレクトリが存在しない場合は作成
+if (!is_dir($logDir)) {
+    mkdir($logDir, 0755, true);
+}
+
 // エラーログの出力先を明示的に指定
-ini_set('error_log', dirname(__DIR__) . '/logs/error.log');
+ini_set('error_log', $logDir . '/error.log');
 
 // エラーレポーティングレベルを設定
 error_reporting(E_ALL);
@@ -18,7 +26,14 @@ ini_set('display_errors', DEBUG_MODE ? 1 : 0);
 
 // カスタムエラーログ関数
 function writeLog($message, $level = 'INFO') {
-    $logFile = dirname(__DIR__) . '/logs/app_error.log';
+    $logDir = dirname(__DIR__) . '/logs';
+    
+    // ログディレクトリが存在しない場合は作成
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+    
+    $logFile = $logDir . '/app_error.log';
     $timestamp = date('Y-m-d H:i:s');
     $logMessage = "[$timestamp] [$level] $message" . PHP_EOL;
     
