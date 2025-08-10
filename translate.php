@@ -177,7 +177,8 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
                        "x-api-key: " . CLAUDE_API_KEY . "\r\n" .
                        "anthropic-version: 2023-06-01\r\n",
             'content' => json_encode($postData),
-            'timeout' => 15
+            'timeout' => 15,
+            'ignore_errors' => true  // エラー時もレスポンスボディを取得
         ]
     ];
     
@@ -186,15 +187,41 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     }
     
     $context = stream_context_create($options);
-    $response = @file_get_contents(CLAUDE_API_URL, false, $context);
+    $response = file_get_contents(CLAUDE_API_URL, false, $context);
     
-    if ($response === false) {
-        $error = error_get_last();
+    // HTTPステータスコードをチェック
+    $http_status = 200;
+    if (isset($http_response_header)) {
+        foreach ($http_response_header as $header) {
+            if (preg_match('/^HTTP\/\d\.\d (\d+)/', $header, $matches)) {
+                $http_status = intval($matches[1]);
+                break;
+            }
+        }
+    }
+    
+    if (DEBUG_MODE && $response) {
+        error_log("Claude API Response (Status: $http_status): " . $response);
+    }
+    
+    if ($response === false || $http_status >= 400) {
         if (DEBUG_MODE) {
+            $error = error_get_last();
             error_log("Claude API Error: " . json_encode($error));
             $http_response_header_string = isset($http_response_header) ? implode("\n", $http_response_header) : "No headers";
             error_log("HTTP Headers: " . $http_response_header_string);
         }
+        
+        // エラーレスポンスを解析
+        if ($response) {
+            $errorData = json_decode($response, true);
+            if (isset($errorData['error'])) {
+                if (DEBUG_MODE) {
+                    error_log("Claude API Error Details: " . json_encode($errorData['error']));
+                }
+            }
+        }
+        
         return [
             'success' => false,
             'error' => ERROR_TRANSLATION_FAILED
@@ -203,15 +230,9 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
     
     $responseData = json_decode($response, true);
     
-    if (DEBUG_MODE) {
-        error_log("Claude API Response: " . $response);
-    }
-    
     if (!$responseData || !isset($responseData['content'])) {
-        if (isset($responseData['error'])) {
-            if (DEBUG_MODE) {
-                error_log("Claude Error: " . json_encode($responseData['error']));
-            }
+        if (DEBUG_MODE) {
+            error_log("Invalid Claude API Response format");
         }
         return [
             'success' => false,
