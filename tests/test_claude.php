@@ -1,7 +1,7 @@
 <?php
 // Claude API翻訳機能のテストスクリプト
-require_once 'config.php';
-require_once 'translate.php';
+require_once '../config/config.php';
+require_once '../translate.php';
 
 // テスト用のテキストサンプル
 $testCases = [

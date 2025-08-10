@@ -1,0 +1,20 @@
+# さくらインターネット用.htaccess設定
+# PHPエラーログの設定
+
+# エラーログを有効化
+php_flag log_errors On
+
+# エラーログファイルの場所を指定
+php_value error_log ./logs/error.log
+
+# エラー表示（本番環境ではOff推奨）
+php_flag display_errors Off
+
+# エラーレポーティングレベル
+php_value error_reporting 32767
+
+# ログディレクトリへのアクセスを制限
+<Directory "logs">
+    Order allow,deny
+    Deny from all
+</Directory>

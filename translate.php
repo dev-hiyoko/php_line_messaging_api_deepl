@@ -1,5 +1,6 @@
 <?php
-require_once 'config.php';
+require_once 'config/config.php';
+require_once 'config/error_log_config.php';
 
 /**
  * 言語を自動判定する
@@ -218,6 +219,15 @@ function translateWithClaude($text, $sourceLang, $targetLang) {
             if (isset($errorData['error'])) {
                 if (DEBUG_MODE) {
                     error_log("Claude API Error Details: " . json_encode($errorData['error']));
+                }
+                
+                // クレジット不足エラーの場合
+                if (isset($errorData['error']['message']) && 
+                    strpos($errorData['error']['message'], 'credit balance') !== false) {
+                    return [
+                        'success' => false,
+                        'error' => 'Claude API credit balance is insufficient. Please check your account.'
+                    ];
                 }
             }
         }
