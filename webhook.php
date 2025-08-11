@@ -187,13 +187,30 @@ function handleWebhookEvent($event) {
         }
     }
     
-    // メンション判定
-    if (!isMentioned($inputText, $event)) {
-        return; // メンションされていない場合は何もしない
+    // トリガー判定（メンションまたは!tコマンド）
+    $isTriggered = false;
+    $cleanText = '';
+    
+    // !tコマンドチェック
+    if (strpos($inputText, '!t ') === 0) {
+        $isTriggered = true;
+        $cleanText = substr($inputText, 3); // "!t "を除去
+        if (DEBUG_MODE) {
+            error_log("Triggered by !t command");
+        }
+    }
+    // メンションチェック
+    else if (isMentioned($inputText, $event)) {
+        $isTriggered = true;
+        $cleanText = removeMentionFromEvent($inputText, $event);
+        if (DEBUG_MODE) {
+            error_log("Triggered by mention");
+        }
     }
     
-    // メンション文字列を除去
-    $cleanText = removeMentionFromEvent($inputText, $event);
+    if (!$isTriggered) {
+        return; // トリガーされていない場合は何もしない
+    }
     
     if (empty(trim($cleanText))) {
         sendLineMessage($replyToken, ERROR_EMPTY_MESSAGE);
